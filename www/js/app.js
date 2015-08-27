@@ -31,6 +31,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             });
     })
     .factory("UserInfo", function() {
+
         var userData = {};
         return {
             isLoggedIn: function() {
@@ -41,12 +42,12 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             },
             setUserData: function(data) {
                 userData = angular.extend(userData, data);
+
             }
         };
     })
-    .factory('RESTService', [ 'halClient', function(halClient) {
+    .factory('RESTService', function(halClient, UserInfo) {
         console.log("creating rest service");
-        
         var root = halClient.$get("http://10.141.2.140:6543/api/v2");
         return  {
             "url": "http://10.141.2.140:6543",
@@ -72,11 +73,14 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                     return resource.$get("uly:data");
                 })
                     .then(function(data) {
-                        return data.$get("uly:ticket", {"embed":1});
+                        var currentUser = UserInfo.getUserData();
+                        var uid = currentUser.id;
+                        var filter = "(assignee_id='"+uid+"')";
+                        return data.$get("uly:ticket", {"embed":1, "filters":filter });
                     });
             }
         };
-    }])
+    })
     .run(function($ionicPlatform, $rootScope, $location, UserInfo, $state) {
         $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -90,7 +94,6 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
         });
         console.log("running");
         $rootScope.$on('$stateChangeStart', function (ev, next, nextparams, curr, currparams) {
-            console.log("route change start:", next);
             if (next && !next.public) {
                 var user = UserInfo.getUserData();
                 if (!(user && user.fullname))  {
