@@ -26,7 +26,8 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             })
             .state("help", {
                 url:"/help",
-                template:"<ion-view view-title='Help'><h1>Help</h1><p>Please help yourself</p></ion-view>"
+                template:"<ion-view view-title='Help'><h1>Help</h1><p>Please help yourself</p></ion-view>",
+                public: true
             });
     })
     .factory("UserInfo", function() {
@@ -39,7 +40,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                 return angular.extend({}, userData);
             },
             setUserData: function(data) {
-                angular.extend(userData, data);
+                userData = angular.extend(userData, data);
             }
         };
     })
@@ -76,7 +77,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             }
         };
     }])
-    .run(function($ionicPlatform, $rootScope, $location, UserInfo) {
+    .run(function($ionicPlatform, $rootScope, $location, UserInfo, $state) {
         $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
             // for form inputs)
@@ -88,12 +89,14 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             }
         });
         console.log("running");
-        $rootScope.$on('$stateChangeStart', function (ev, next, nextparams, curr) {
+        $rootScope.$on('$stateChangeStart', function (ev, next, nextparams, curr, currparams) {
             console.log("route change start:", next);
-            if (next.$$route) {
+            if (next && !next.public) {
                 var user = UserInfo.getUserData();
-                var isPublic = next.$$route.public;
-                if (!isPublic  && !(user && user.fullname))  { $location.path('/login') }
+                if (!(user && user.fullname))  {
+                    ev.preventDefault();
+                    $state.go("login");
+                }
             }
         });
         
