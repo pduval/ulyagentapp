@@ -40,26 +40,28 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                 public: true
             });
     })
-    .factory("UserInfo", function() {
+    .factory("UserInfo", function($localStorage) {
 
         console.log("creating UserInfo service");
-        var userData = {};
-        var token = null;
+        var userData = $localStorage.getObject("user_data") || {};
+        var token = $localStorage.get("user_token") || null;
         return {
             isLoggedIn: function() {
-                return userData.username != null;
+                return this.getToken() != null;
             },
             getUserData: function() {
                 return angular.extend({}, userData);
             },
             setUserData: function(data) {
                 userData = angular.extend(userData, data);
+                $localStorage.setObject("user_data", userData);
             },
             getToken: function() {
                 return token;
             },
             setToken: function(tk) {
                 token = tk;
+                $localStorage.set("user_token", tk);
             }
         };
     })
@@ -74,14 +76,33 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             }
         };
     })
-    .factory('RESTService', function(halClient, UserInfo) {
+    .factory('$localStorage', ['$window', function($window) {
+        return {
+            set: function(key, value) {
+                $window.localStorage[key] = value;
+            },
+            get: function(key, defaultValue) {
+                return $window.localStorage[key] || defaultValue;
+            },
+            setObject: function(key, value) {
+                $window.localStorage[key] = JSON.stringify(value);
+            },
+            getObject: function(key) {
+                return JSON.parse($window.localStorage[key] || '{}');
+            }
+        };
+    }])
+    .factory('RESTService', function(halClient, UserInfo, $localStorage) {
         console.log("creating rest service");
+        var stored_root = $localStorage.get("server_url") || "http://10.141.2.157:6543";
         
-        var root = halClient.$get("http://10.141.2.157:6543/api/v2");
+        
+        var root = halClient.$get(stored_root + "/api/v2");
         return  {
-            "url": "http://10.141.2.157:6543",
+            "url": stored_root,
             "set_url": function(new_root) {
                 this.url = new_root;
+                $localStorage.set("server_url", new_root);
                 root = halClient.$get(new_root + "/api/v2");
                 return root;
             },
