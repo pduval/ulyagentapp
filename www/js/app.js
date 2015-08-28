@@ -10,7 +10,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
     })
     .config(function($stateProvider, $urlRouterProvider) {
         console.log("configuring router");
-        $urlRouterProvider.otherwise("login");
+        $urlRouterProvider.otherwise("tickets");
         console.log("configuring routes");
         $stateProvider
             .state("login", {
@@ -19,10 +19,15 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                 controller:"LoginCtrl",
                 public: true
             })
-            .state("home", {
-                url:"/home",
+            .state("tickets", {
+                url:"/tickets",
                 templateUrl:"templates/tickets.html",
                 controller:"TicketCtrl"
+            })
+            .state("tickets.detail", {
+                url:"/:ticketId",
+                templateUrl:"templates/ticket.html",
+                controller:"TicketDetailCtrl"
             })
             .state("new_ticket", {
                 url:"/new_ticket",
@@ -31,13 +36,15 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             })
             .state("help", {
                 url:"/help",
-                template:"<ion-view view-title='Help'><h1>Help</h1><p>Please help yourself</p></ion-view>",
+                template:"<ion-view view-title='Help'><ion-content><h1>Help</h1><p>Please help yourself</p></ion-content></ion-view>",
                 public: true
             });
     })
     .factory("UserInfo", function() {
 
+        console.log("creating UserInfo service");
         var userData = {};
+        var token = null;
         return {
             isLoggedIn: function() {
                 return userData.username != null;
@@ -47,6 +54,12 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             },
             setUserData: function(data) {
                 userData = angular.extend(userData, data);
+            },
+            getToken: function() {
+                return token;
+            },
+            setToken: function(tk) {
+                token = tk;
             }
         };
     })
@@ -61,7 +74,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             }
         };
     })
-    .factory('RESTService', [ 'halClient', function(halClient) {
+    .factory('RESTService', function(halClient, UserInfo) {
         console.log("creating rest service");
         
         var root = halClient.$get("http://10.141.2.157:6543/api/v2");
@@ -79,8 +92,17 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                 console.error("Logging in with:", username, password);
                 return root.then(function(resource) {
                     return resource.$get("uly:app").then(function(app) {
-                        console.log("got app:", app);
-                        return app.$post("uly:signin", { "username":username, "password":password});
+                        return app.$post("uly:signin", {
+                                "username":username,
+                                "password":password,
+                                "source": "token"
+                        });
+                    }).then(function(login) {
+                        console.log("got login:", login);
+                        if (login.token) {
+                            UserInfo.setToken(login.token);
+                        }
+                        return login.$get("uly:app");
                     });
                 });
             },
@@ -103,8 +125,47 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                         return data.$post("uly:ticket", {}, { "description":title, "body":body});
                     });
                 });
+            },
+            loadTicket: function(id) {
+                return root.then(function(resource) {
+                    return resource.$get("uly:data");
+                })
+                    .then(function(data) {
+                        return data.$get("find", {"rel":"ticket/"+id});
+                    });
+            }
+            
+        };
+    })
+    .factory('httpRequestInterceptor', function (UserInfo) {
+        return {
+            request: function (config) {
+                var token = UserInfo.getToken();
+                if (token) {
+                    config.headers = angular.extend(config.headers || {}, {
+                        'Authorization':'Bearer ' + token
+                    });
+                }
+                console.log("setting headers:", config.headers, "with token", token);
+                // use this to prevent destroying other existing headers
+                // config.headers['Authorization'] = 'authentication;
+
+                return config;
+            },
+            response: function(response) {
+                //check the X-Ulysses-Token header
+                console.log("Got headers:", response.headers(), response.headers("X-Ulysses-Token"));
+                token = response.headers()["X-Ulysses-Token"];
+                if(token) {
+                    console.log("set token to:", token);
+                    UserInfo.setToken(token);
+                }
+                return response;
             }
         };
+    })
+    .config(function($httpProvider) {
+        $httpProvider.interceptors.push('httpRequestInterceptor');
     })
     .run(function($ionicPlatform, $rootScope, $location, UserInfo, $state) {
         $ionicPlatform.ready(function() {
@@ -119,8 +180,10 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
         });
         console.log("running");
         $rootScope.$on('$stateChangeStart', function (ev, next, nextparams, curr, currparams) {
+            console.log("next:", next, next && next.public);
             if (next && !next.public) {
                 var user = UserInfo.getUserData();
+                console.log("got user:", user);
                 if (!(user && user.fullname))  {
                     ev.preventDefault();
                     $state.go("login");

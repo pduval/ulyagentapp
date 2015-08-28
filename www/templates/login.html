@@ -1,18 +1,23 @@
 <ion-view view-title="Login" name="login-view">
-  <ion-content class="padding">
-      <div class="list list-inset">
+    <ion-content class="padding">
+        <form>
+      <div class="list">
           <label class="item item-input">
+              <span class="input-label">Username</span>
               <input type="text" placeholder="Username" ng-model="user_data.username">
           </label>
           <label class="item item-input">
+              <span class="input-label">Password</span>
               <input type="password" placeholder="Password" ng-model="user_data.password">
           </label>
           <label class="item item-input">
+              <span class="input-label">Ulysses System URL</span>
               <input type="text" placeholder="Server URL" ng-model="user_data.server">
           </label>
       </div>
       <div class="error assertive">{{error}}</div>
-      <button class="button button-block button-calm" ng-click="login()">Login</button>
+      <button class="button button-block button-calm" ng-click="login()" type="submit" >Login</button>
+        </form>
   </ion-content>
 </ion-view>
        
