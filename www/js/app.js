@@ -36,7 +36,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             })
             .state("help", {
                 url:"/help",
-                template:"<ion-view view-title='Help'><ion-content><h1>Help</h1><p>Please help yourself</p></ion-content></ion-view>",
+                template:"<ion-view view-title='Help'><ion-content has-headers='true'><h1>Help</h1><p>Please help yourself</p></ion-content></ion-view>",
                 public: true
             });
     })
