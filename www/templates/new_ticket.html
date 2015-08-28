@@ -5,7 +5,8 @@
               <input type="text" placeholder="Title" ng-model="ticket_data.title">
           </label>
           <label class="item item-input">
-              <input type="text" placeholder="Body" ng-model="ticket_data.body">
+              <textarea placeholder="Body" ng-model="ticket_data.body" rows="3">
+              </textarea>
           </label>
       </div>
       <div class="error assertive">{{error}}</div>
