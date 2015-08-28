@@ -24,6 +24,11 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                 templateUrl:"templates/tickets.html",
                 controller:"TicketCtrl"
             })
+            .state("new_ticket", {
+                url:"/new_ticket",
+                templateUrl:"templates/new_ticket.html",
+                controller:"NewTicketCtrl"
+            })
             .state("help", {
                 url:"/help",
                 template:"<ion-view view-title='Help'><h1>Help</h1><p>Please help yourself</p></ion-view>",
@@ -44,12 +49,23 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             }
         };
     })
+    .factory("TicketInfo", function() {
+        var ticketData = {};
+        return {
+            getTicketData: function() {
+                return angular.extend({}, ticketData);
+            },
+            setTicketData: function(data) {
+                userData = angular.extend(ticketData, data);
+            }
+        };
+    })
     .factory('RESTService', [ 'halClient', function(halClient) {
         console.log("creating rest service");
         
-        var root = halClient.$get("http://10.141.2.140:6543/api/v2");
+        var root = halClient.$get("http://10.141.2.157:6543/api/v2");
         return  {
-            "url": "http://10.141.2.140:6543",
+            "url": "http://10.141.2.157:6543",
             "set_url": function(new_root) {
                 this.url = new_root;
                 root = halClient.$get(new_root + "/api/v2");
@@ -74,6 +90,15 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                     .then(function(data) {
                         return data.$get("uly:ticket", {"embed":1});
                     });
+            },
+            'new_ticket' : function(title, body) {
+                console.error("Creating new ticket in with:", title, body);
+                return root.then(function(resource) {
+                    return resource.$get("uly:data").then(function(data) {
+                        console.log("got data:", data);
+                        return data.$post("uly:ticket", {}, { "description":title, "body":body});
+                    });
+                });
             }
         };
     }])

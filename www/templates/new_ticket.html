@@ -1,0 +1,15 @@
+<ion-view view-title="New Ticket" name="new-ticket-view">
+  <ion-content class="padding">
+      <div class="list list-inset">
+          <label class="item item-input">
+              <input type="text" placeholder="Title" ng-model="ticket_data.title">
+          </label>
+          <label class="item item-input">
+              <input type="text" placeholder="Body" ng-model="ticket_data.body">
+          </label>
+      </div>
+      <div class="error assertive">{{error}}</div>
+      <button class="button button-block button-calm" ng-click="new_ticket()">Create Ticket</button>
+  </ion-content>
+</ion-view>
+       
