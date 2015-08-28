@@ -22,7 +22,8 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             .state("tickets", {
                 url:"/tickets",
                 templateUrl:"templates/tickets.html",
-                controller:"TicketCtrl"
+                controller:"TicketCtrl",
+                cache:false
             })
             .state("tickets.detail", {
                 url:"/:ticketId",
