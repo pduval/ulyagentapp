@@ -135,12 +135,12 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                     .then(function(data) {
                         var currentUser = UserInfo.getUserData();
                         var uid = currentUser.id;
-                        var filter = "(assignee_id='"+uid+"')";
+                        var filter = "(requestor_id='"+uid+"')";
                         return data.$get("uly:ticket", {"embed":1, "filters":filter });
                     });
             },
             'new_ticket' : function(title, body) {
-                console.error("Creating new ticket in with:", title, body);
+                console.error("1. Creating new ticket in with:", title + ", " + body);
                 return root.then(function(resource) {
                     return resource.$get("uly:data").then(function(data) {
                         console.log("got data:", data);

@@ -30,7 +30,7 @@ angular.module('agentapp.controllers', ['ionic', "angular-hal"])
             "password": "",
             "server":RESTService.url
         };
-        $scope.login = function() {
+        $scope.do_login = function() {
             if ($scope.user_data.server && RESTService.url != $scope.user_data.server) {
                 RESTService.set_url($scope.user_data.server);
             }
