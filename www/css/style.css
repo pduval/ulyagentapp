@@ -1,1 +1,10 @@
 /* Empty. Add your own CSS if you like */
+
+.login-background {
+  background-image: url('../img/background.jpg')
+}
+
+
+.logo-telepen {
+  background-image: url('../img/logo.png')
+}

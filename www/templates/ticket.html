@@ -1,21 +1,5 @@
 <ion-view view-title="Ticket">
     <ion-content>
-        <ion-spinner ng-show="loading"></ion-spinner>
-        <ion-item class="card" >
-            <div class="item item-divider">
-                <h2><a href="#/ticket/{{ticket.id}}" >{{ticket.title}}</a></h2>
-            </div>
-            <div class="item item-body" ng-bind-html="ticket.snippet">
-                
-            </div>
-            <div ng-repeat="label in ticket.labels">
-                <i class="fa {{label.icon}} text-{{label.colour}}" ></i>
-                <span>{{label.label}}</span>
-            </div>
-            <div class="item item-divider">
-                Footer
-            </div>
-        </ion-item>
-        <div ng-hide="total || loading">No Results</div>
+                <h2>Ello</h2>
     </ion-content>
 </ion-view>

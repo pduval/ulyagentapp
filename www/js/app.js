@@ -8,28 +8,46 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
     .config(function($httpProvider) {
         $httpProvider.defaults.withCredentials = true;
     })
+
     .config(function($stateProvider, $urlRouterProvider) {
         console.log("configuring router");
-        $urlRouterProvider.otherwise("tickets");
+        $urlRouterProvider.otherwise("login");
         console.log("configuring routes");
         $stateProvider
+
+            .state('tab', {
+              url: '/tab',
+              abstract: true,
+              templateUrl: 'templates/tabs.html'
+            })
+
             .state("login", {
                 url:"/login",
                 templateUrl:"templates/login.html",
                 controller:"LoginCtrl",
                 public: true
             })
-            .state("tickets", {
-                url:"/tickets",
-                templateUrl:"templates/tickets.html",
-                controller:"TicketCtrl",
-                cache:false
+
+            .state('tab.tickets', {
+              url: '/tickets',
+              views: {
+                'tab-tickets': {
+                  templateUrl: 'templates/tickets.html',
+                  controller: 'TicketCtrl'
+                }
+              }
             })
-            .state("tickets.detail", {
-                url:"/:ticketId",
-                templateUrl:"templates/ticket.html",
-                controller:"TicketDetailCtrl"
+
+            .state('tab.ticket-detail', {
+              url:"/tickets/:ticketId",
+              views: {
+                'tab-ticket-detail': {
+                  templateUrl: 'templates/ticket.html',
+                  controller: 'TicketDetailCtrl'
+                }
+              }
             })
+
             .state("new_ticket", {
                 url:"/new_ticket",
                 templateUrl:"templates/new_ticket.html",
@@ -37,35 +55,35 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             })
             .state("help", {
                 url:"/help",
-                template:"<ion-view view-title='Help'><ion-content has-headers='true'><h1>Help</h1><p>Please help yourself</p></ion-content></ion-view>",
+                template:"<ion-view view-title='Help'><ion-content><h1>Help</h1><p>Please help yourself</p></ion-content></ion-view>",
                 public: true
             });
     })
-    .factory("UserInfo", function($localStorage) {
+
+    .factory("UserInfo", function() {
 
         console.log("creating UserInfo service");
-        var userData = $localStorage.getObject("user_data") || {};
-        var token = $localStorage.get("user_token") || null;
+        var userData = {};
+        var token = null;
         return {
             isLoggedIn: function() {
-                return this.getToken() != null;
+                return userData.username != null;
             },
             getUserData: function() {
                 return angular.extend({}, userData);
             },
             setUserData: function(data) {
                 userData = angular.extend(userData, data);
-                $localStorage.setObject("user_data", userData);
             },
             getToken: function() {
                 return token;
             },
             setToken: function(tk) {
                 token = tk;
-                $localStorage.set("user_token", tk);
             }
         };
     })
+
     .factory("TicketInfo", function() {
         var ticketData = {};
         return {
@@ -77,41 +95,23 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
             }
         };
     })
-    .factory('$localStorage', ['$window', function($window) {
-        return {
-            set: function(key, value) {
-                $window.localStorage[key] = value;
-            },
-            get: function(key, defaultValue) {
-                return $window.localStorage[key] || defaultValue;
-            },
-            setObject: function(key, value) {
-                $window.localStorage[key] = JSON.stringify(value);
-            },
-            getObject: function(key) {
-                return JSON.parse($window.localStorage[key] || '{}');
-            }
-        };
-    }])
-    .factory('RESTService', function(halClient, UserInfo, $localStorage) {
+
+    .factory('RESTService', function(halClient, UserInfo) {
         console.log("creating rest service");
-        var stored_root = $localStorage.get("server_url") || "http://10.141.2.157:6543";
-        
-        
-        var root = halClient.$get(stored_root + "/api/v2");
+
+        var root = halClient.$get("http://10.141.2.176:6543/api/v2/");
         return  {
-            "url": stored_root,
+            "url": "http://10.141.2.176:6543",
             "set_url": function(new_root) {
                 this.url = new_root;
-                $localStorage.set("server_url", new_root);
                 root = halClient.$get(new_root + "/api/v2");
                 return root;
             },
             "start": function() {
                 return root;
             },
-            'login' : function(username, password) {
-                console.error("Logging in with:", username, password);
+            'login_rest' : function(username, password) {
+                //console.error("Logging in with:", username, password);
                 return root.then(function(resource) {
                     return resource.$get("uly:app").then(function(app) {
                         return app.$post("uly:signin", {
@@ -122,6 +122,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                     }).then(function(login) {
                         console.log("got login:", login);
                         if (login.token) {
+                          console.log("Im here:", login);
                             UserInfo.setToken(login.token);
                         }
                         return login.$get("uly:app");
@@ -133,14 +134,16 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                     return resource.$get("uly:data");
                 })
                     .then(function(data) {
+                        console.log("loading tickets now");
                         var currentUser = UserInfo.getUserData();
                         var uid = currentUser.id;
-                        var filter = "(requestor_id='"+uid+"')";
+                        var filter = "assignee_id='"+uid+"'";
+                        console.log("Done Loading Tickets");
                         return data.$get("uly:ticket", {"embed":1, "filters":filter });
                     });
             },
             'new_ticket' : function(title, body) {
-                console.error("1. Creating new ticket in with:", title + ", " + body);
+                console.error("Creating new ticket in with:", title, body);
                 return root.then(function(resource) {
                     return resource.$get("uly:data").then(function(data) {
                         console.log("got data:", data);
@@ -156,9 +159,10 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                         return data.$get("find", {"rel":"ticket/"+id});
                     });
             }
-            
+
         };
     })
+
     .factory('httpRequestInterceptor', function (UserInfo) {
         return {
             request: function (config) {
@@ -189,6 +193,9 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
     .config(function($httpProvider) {
         $httpProvider.interceptors.push('httpRequestInterceptor');
     })
+    .config(function($ionicConfigProvider) {
+      $ionicConfigProvider.tabs.position('bottom');
+    })
     .run(function($ionicPlatform, $rootScope, $location, UserInfo, $state) {
         $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -197,7 +204,7 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                 cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
             }
             if(window.StatusBar) {
-                StatusBar.styleDefault();
+              StatusBar.styleLightContent();
             }
         });
         console.log("running");
@@ -208,9 +215,10 @@ angular.module('agentapp', ['ionic', "angular-hal", "agentapp.controllers"])
                 console.log("got user:", user);
                 if (!(user && user.fullname))  {
                     ev.preventDefault();
+                  console.log("go back login");
                     $state.go("login");
                 }
             }
         });
-        
+
     });

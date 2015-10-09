@@ -1,28 +1,32 @@
 <ion-view view-title="Tickets for Me!" name="home">
     <ion-nav-buttons side="right">
         <button ui-sref="help" class="button button-assertive button-icon ion-ios-help" >Get Help</button>
-        
+
     </ion-nav-buttons>
     <ion-nav-buttons side="left">
         <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
     </ion-nav-buttons>
     <ion-content>
     <ion-spinner ng-show="loading"></ion-spinner>
-    <ion-list class="card gallery half item" style="min-height:500px" ng-controller="TicketCtrl" ng-show="total">
-        
-        <ion-item ng-repeat="ticket in tickets" class="list card" >
+    <ion-list class="card gallery half item" style="min-height:500px" ng-controller="TicketDetailCtrl" ng-show="total">
+
+        <!-- <ion-item ng-repeat="ticket in tickets" class="list card" >-->
+      <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="ticket in tickets" type="item-text-wrap" ">
             <div class="item item-divider">
-                <h2><a href="#/tickets/{{ticket.id}}" >{{ticket.title}}</a></h2>
+                <h2><a href="#/tab/tickets/{{ticket.id}}" >{{ticket.title}}</a></h2>
             </div>
-            <div class="item item-body" ng-bind-html="ticket.snippet">
-                
+            <!--<div class="item item-body" ng-bind-html="ticket.snippet">
+
+            </div>-->
+            <div class="item item-body">
+              <h2>Body : {{ticket.body}}</h2>
             </div>
             <div ng-repeat="label in ticket.labels">
                 <i class="fa {{label.icon}} text-{{label.colour}}" ></i>
-                <span>{{label.label}}</span>
+                <span class="button button-small button-clear ion-ios7-clos-outline icon-right">#{{label.label}}</span>
             </div>
             <div class="item item-divider">
-                Footer
+                Footer Example
             </div>
         </ion-item>
     </ion-list>

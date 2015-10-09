@@ -1,5 +1,7 @@
-<ion-view view-title="Login" name="login-view">
-    <ion-content class="padding">
+<ion-view view-title="Login" name="login-view" hide-nav-bar="true">
+    <ion-content class="padding login-background">
+
+      <!-- temporary hide
         <form>
       <div class="list">
           <label class="item item-input">
@@ -16,8 +18,45 @@
           </label>
       </div>
       <div class="error assertive">{{error}}</div>
-      <button class="button button-block button-calm" ng-click="do_login()" type="submit">Login</button>
+      <button class="button button-block button-calm" ng-click="login()" type="submit" >Login</button>
         </form>
+      end hide -->
+
+      <!--Start-->
+      <div class="container">
+        <div class="center-form panel">
+          <div class="panel-body logo-telepen">
+          </div>
+          <div class="panel-body">
+            <h4 class="text-center"><i class="ion-log-in"></i> TELEPEN</h4>
+
+            <form name="loginForm">
+              <div class="form-group has-feedback">
+                <input server-error class="form-control input-lg" type="text" name="username" ng-model="user_data.username" placeholder="Username" required autofocus>
+                <span class="ion-at form-control-feedback"></span>
+              </div>
+
+              <div class="form-group has-feedback">
+                <input server-error class="form-control input-lg" type="password" name="password" ng-model="user_data.password" placeholder="Password" required>
+                <span class="ion-key form-control-feedback"></span>
+              </div>
+
+              <div class="form-group has-feedback">
+                <input server-error class="form-control input-lg" type="text" name="serverURL" ng-model="user_data.server" placeholder="Server URL" required autofocus>
+                <span class="ion-at form-control-feedback"></span>
+              </div>
+
+              <div class="error assertive">{{error}}</div>
+              <button type="submit" class="btn btn-block btn-success" ng-click="login()">Login</button>
+            </form>
+
+            <button class="btn btn-block btn-instagram">
+              <i class="ion-social-instagram"></i> Sample Sign in with Instagram
+            </button>
+          </div>
+        </div>
+      </div>
+      <!--END-->
   </ion-content>
 </ion-view>
-       
+
