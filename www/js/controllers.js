@@ -35,7 +35,10 @@ angular.module('agentapp.controllers', ['ionic', "angular-hal"])
             "server":RESTService.url
         };
         $scope.login = function() {
-          console.log("here login goes");
+            console.log("here login goes");
+            if ($scope.user_data.server != RESTService.url) {
+                RESTService.set_url($scope.user_data.server);
+            }
             RESTService.login_rest($scope.user_data.username, $scope.user_data.password).then(function(app) {
                 if (app.error) {
                   console.log("Oh snaps, error on webservice");
